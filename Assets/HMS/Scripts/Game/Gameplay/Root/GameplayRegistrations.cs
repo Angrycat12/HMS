@@ -1,64 +1,41 @@
-﻿using System;
-using System.Linq;
 using BaCon;
-using mBuilding.Game;
-using mBuilding.Scripts.Game.Common;
-using mBuilding.Scripts.Game.Gameplay.Commands;
-using mBuilding.Scripts.Game.Gameplay.Services;
-using mBuilding.Scripts.Game.Settings;
-using mBuilding.Scripts.Game.State;
-using mBuilding.Scripts.Game.State.cmd;
 using R3;
 
-namespace mBuilding.Scripts.Game.Gameplay.Root
+public static class GameplayRegistrations
 {
-    public static class GameplayRegistrations
+    public static void Register(DIContainer container, GameplayEnterParams gameplayEnterParams)
     {
-        public static void Register(DIContainer container, GameplayEnterParams gameplayEnterParams)
-        {
-            var gameStateProvider = container.Resolve<IGameStateProvider>();
-            var gameState = gameStateProvider.GameState;
-            var settingsProvider = container.Resolve<ISettingsProvider>();
-            var gameSettings = settingsProvider.GameSettings;
-            
-            container.RegisterInstance(AppConstants.EXIT_SCENE_REQUEST_TAG, new Subject<Unit>());
+        var gameStateProvider = container.Resolve<IGameStateProvider>();
+        var gameState = gameStateProvider.GameState;
+        var settingsProvider = container.Resolve<ISettingsProvider>();
+        var gameSettings = settingsProvider.GameSettings;
 
-            var cmd = new CommandProcessor(gameStateProvider);
-            cmd.RegisterHandler(new CmdPlaceEntityHandler(gameState));
-            cmd.RegisterHandler(new CmdCreateMapHandler(gameState, gameSettings));
-            cmd.RegisterHandler(new CmdResourcesAddHandler(gameState));
-            cmd.RegisterHandler(new CmdResourcesSpendHandler(gameState));
-            container.RegisterInstance<ICommandProcessor>(cmd);
-            
-            // На данный момент мы знаем, что мы пытаемся загрузить карту. Но не знаем, есть ли ее состояние вообще.
-            // Создание карты - это модель, так что работать с ней нужно через команды, поэтому нужен обработчик команд
-            // на случай, если состояния карты еще не суествует. Может мы этот момент передалаем потом, чтобы 
-            // состояние карты создавалось ДО загрузки сцены и тут не было подобных проверок, но пока так. Делаем пошагово
-            var loadingMapId = gameplayEnterParams.MapId;
-            var loadingMap = gameState.Maps.FirstOrDefault(m => m.Id == loadingMapId);
-            if (loadingMap == null)
-            {
-                // Создание состояния, если его еще нет через команду.
-                var command = new CmdCreateMap(loadingMapId);
-                var success = cmd.Process(command);
-                if (!success)
-                {
-                    throw new Exception($"Couldn't create map state with id: ${loadingMapId}");
-                }
+        container.RegisterInstance(AppConstants.EXIT_SCENE_REQUEST_TAG, new Subject<Unit>());
 
-                loadingMap = gameState.Maps.First(m => m.Id == loadingMapId);
-            }
+        // CmdHandler Registration
+        var cmd = new CommandProcessor(gameStateProvider);
 
-            container.RegisterFactory(_ => new BuildingsService(
-                loadingMap.Entities,
-                gameSettings.entitiesSettings,
-                cmd)
-            ).AsSingle();
+        // World
+        // Natural
+        cmd.RegisterHandler(new CmdCreateHeightMapHandler(gameState));
+        cmd.RegisterHandler(new CmdCreateHumidityMapHandler(gameState));
+        cmd.RegisterHandler(new CmdCreateTemperatureMapHandler(gameState));
+        cmd.RegisterHandler(new CmdCreateVegetationMapHandler(gameState));
+        cmd.RegisterHandler(new CmdCreateRiverHandler(gameState));
+        cmd.RegisterHandler(new CmdCreateBiomesHandler(gameState));
+        // Infrastructure
+        cmd.RegisterHandler(new CmdCreateCityHandler(gameState));
+        // Political
 
-            container.RegisterFactory(_ => new ResourcesService(gameState.Resources, cmd)).AsSingle();
 
-            // TODO: Обвешать решетками
-            container.RegisterFactory(c => new CheatsService(c.Resolve<BuildingsService>())).AsSingle();
-        }
+        // Resource 
+        cmd.RegisterHandler(new CmdResourcesAddHandler(gameState));
+        cmd.RegisterHandler(new CmdResourcesSpendHandler(gameState));
+
+        container.RegisterInstance<ICommandProcessor>(cmd);
+
+        // Service registration
+        container.RegisterFactory(_ => new WorldService(gameplayEnterParams.WorldId, gameState.Worlds, cmd)).AsSingle();
+        container.RegisterFactory(_ => new ResourcesService(gameState.Resources, cmd)).AsSingle();
     }
 }

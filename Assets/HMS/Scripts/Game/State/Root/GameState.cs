@@ -1,19 +1,9 @@
-﻿using System.Collections.Generic;
-using mBuilding.Scripts.Game.State.GameResources;
-using mBuilding.Scripts.Game.State.Maps;
+using System;
+using System.Collections.Generic;
 
-namespace mBuilding.Scripts.Game.State.Root
+[Serializable]
+public class GameState
 {
-    public class GameState
-    {
-        public int GlobalEntityId { get; set; }
-        public int CurrentMapId { get; set; }
-        public List<MapData> Maps { get; set; }
-        public List<ResourceData> Resources { get; set; }
-
-        public int CreateEntityId()
-        {
-            return GlobalEntityId++;
-        }
-    }
+     public List<WorldData> Worlds { get; set; }
+     public List<ResourceData> Resources { get; set; }
 }

@@ -1,12 +1,12 @@
-﻿namespace mBuilding.Scripts.Game.Gameplay.Root
+using UnityEditor;
+
+public class GameplayEnterParams : SceneEnterParams
 {
-    public class GameplayEnterParams : SceneEnterParams
+    public readonly int WorldId = 0;
+
+    public GameplayEnterParams() : base(Scenes.GAMEPLAY)
     {
-        public int MapId { get; }
-        
-        public GameplayEnterParams(int mapId) : base(Scenes.GAMEPLAY)
-        {
-            MapId = mapId;
-        }
+        //WorldName = worldName;
     }
 }
+

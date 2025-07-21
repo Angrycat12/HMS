@@ -1,12 +1,8 @@
-﻿namespace mBuilding.Scripts.Game.MainMenu.Root
+public class MainMenuEnterParams : SceneEnterParams
 {
-    public class MainMenuEnterParams
+    public MainMenuEnterParams() : base(Scenes.MAINMENU)
     {
-        public string  Result { get; }
 
-        public MainMenuEnterParams(string result)
-        {
-            Result = result;
-        }
     }
 }
+

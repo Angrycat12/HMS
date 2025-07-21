@@ -1,5 +1,4 @@
-﻿namespace mBuilding.Scripts
-{
+
     public abstract class SceneEnterParams
     {
         public string SceneName { get; }
@@ -14,4 +13,3 @@
             return (T)this;
         }
     }
-}

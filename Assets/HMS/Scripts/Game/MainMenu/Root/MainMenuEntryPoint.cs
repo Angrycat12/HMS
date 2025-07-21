@@ -1,42 +1,40 @@
-﻿using BaCon;
-using mBuilding.Scripts.Game.Gameplay.Root;
-using mBuilding.Scripts.Game.MainMenu.Root.View;
+using BaCon;
 using R3;
 using UnityEngine;
-using Random = UnityEngine.Random;
 
-namespace mBuilding.Scripts.Game.MainMenu.Root
+public class MainMenuEntryPoint : MonoBehaviour
 {
-    public class MainMenuEntryPoint : MonoBehaviour
+    [SerializeField] private UIMainMenuRootBinder _sceneUIRootPrefab;
+
+    public Observable<MainMenuExitParams> Run(DIContainer mainMenuContainer, MainMenuEnterParams enterParams)
     {
-        [SerializeField] private UIMainMenuRootBinder _sceneUIRootPrefab;
+        MainMenuRegistrations.Register(mainMenuContainer, enterParams);
+        var mainMenuViewModelsContainer = new DIContainer(mainMenuContainer);
+        MainMenuViewModelsRegistrations.Register(mainMenuViewModelsContainer);
 
-        public Observable<MainMenuExitParams> Run(DIContainer mainMenuContainer, MainMenuEnterParams enterParams)
-        {
-            MainMenuRegistrations.Register(mainMenuContainer, enterParams);
-            var mainMenuViewModelsContainer = new DIContainer(mainMenuContainer);
-            MainMenuViewModelsRegistrations.Register(mainMenuViewModelsContainer);
-            
-            ///
-            
-            // Для теста:
-            mainMenuViewModelsContainer.Resolve<UIMainMenuRootViewModel>();
-            
-            var uiRoot = mainMenuContainer.Resolve<UIRootView>();
-            var uiScene = Instantiate(_sceneUIRootPrefab);
-            uiRoot.AttachSceneUI(uiScene.gameObject);
-            
-            var exitSignalSubj = new Subject<Unit>();
-            uiScene.Bind(exitSignalSubj);
+        InitUI(mainMenuViewModelsContainer);
 
-            Debug.Log($"MAIN MENU ENTRY POINT: Run main menu scene. Results: {enterParams?.Result}");
+        var gameplayEnterParams = new GameplayEnterParams();
+        var mainMenuExitParams = new MainMenuExitParams(gameplayEnterParams);
+        var exitSceneRequest = mainMenuContainer.Resolve<Subject<Unit>>(AppConstants.EXIT_SCENE_REQUEST_TAG);
+        var exitToGameplaySceneSignal = exitSceneRequest.Select(_ => mainMenuExitParams);
 
-            var saveFileName = "ololo.save";
-            var gameplayEnterParams = new GameplayEnterParams(0);
-            var mainMenuExitParams = new MainMenuExitParams(gameplayEnterParams);
-            var exitToGameplaySceneSignal = exitSignalSubj.Select(_ => mainMenuExitParams);
-            
-            return exitToGameplaySceneSignal;
-        }   
+        return exitToGameplaySceneSignal;
+    }
+
+    private void InitUI(DIContainer viewsContainer)
+    {
+        // Создали UI для сцены (это было)
+        var uiRoot = viewsContainer.Resolve<UIRootView>();
+        var uiSceneRootBinder = Instantiate(_sceneUIRootPrefab);
+        uiRoot.AttachSceneUI(uiSceneRootBinder.gameObject);
+        
+        // Запрашиваем рутовую вью модель и пихаем ее в баиндер, который создали
+        var uiSceneRootViewModel = viewsContainer.Resolve<UIMainMenuRootViewModel>();
+        uiSceneRootBinder.Bind(uiSceneRootViewModel);
+        
+        // можно открывать окошки
+        var uiManager = viewsContainer.Resolve<MainMenuUIManager>();
+        uiManager.OpenScreenMainMenu();
     }
 }

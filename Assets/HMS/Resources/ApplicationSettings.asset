@@ -9,9 +9,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 100e4f037a6b446b9d5d7c344f1fff2a, type: 3}
+  m_Script: {fileID: 11500000, guid: 20adf618a8d22ad44bf2dcfe3767452a, type: 3}
   m_Name: ApplicationSettings
   m_EditorClassIdentifier: 
-  MusicVolume: 5
-  SFXVolume: 5
-  Difficulty: Hard

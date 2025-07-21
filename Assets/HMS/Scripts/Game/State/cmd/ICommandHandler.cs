@@ -1,7 +1,4 @@
-﻿namespace mBuilding.Scripts.Game.State.cmd
+public interface ICommandHandler<TCommand> where TCommand : ICommand
 {
-    public interface ICommandHandler<TCommand> where TCommand : ICommand
-    {
-        bool Handle(TCommand command);
-    }
+    bool Handle(TCommand command);
 }

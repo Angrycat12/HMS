@@ -1,23 +1,11 @@
-﻿using BaCon;
-using mBuilding.Game;
-using mBuilding.Game.View.UI;
-using mBuilding.Scripts.Game.Gameplay.Services;
+using BaCon;
 
-namespace mBuilding.Scripts.Game.Gameplay.Root.View
+public static class GameplayViewModelsRegistrations
 {
-    public static class GameplayViewModelsRegistrations
+    public static void Register(DIContainer container)
     {
-        public static void Register(DIContainer container)
-        {
-            container.RegisterFactory(c => new GameplayUIManager(container)).AsSingle();
-            container.RegisterFactory(c => new UIGameplayRootViewModel(
-                c.Resolve<CheatsService>()))
-                .AsSingle();
-            container
-                .RegisterFactory(c => new WorldGameplayRootViewModel(
-                        c.Resolve<BuildingsService>(), 
-                        c.Resolve<ResourcesService>()))
-                .AsSingle();
-        }
+        container.RegisterFactory(c => new GameplayUIManager(container)).AsSingle();
+        container.RegisterFactory(c => new UIGameplayRootViewModel()).AsSingle();
+        container.RegisterFactory(c => new WorldGameplayRootViewModel(container.Resolve<WorldService>())).AsSingle();
     }
 }

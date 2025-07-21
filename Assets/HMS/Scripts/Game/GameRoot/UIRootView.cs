@@ -1,41 +1,39 @@
-﻿using UnityEngine;
+using UnityEngine;
 
-namespace mBuilding.Scripts
+public class UIRootView : MonoBehaviour
 {
-    public class UIRootView : MonoBehaviour
+    [SerializeField] private GameObject _loadingScreen;
+    [SerializeField] private Transform _uiSceneContainer;
+    
+    private void Awake()
     {
-        [SerializeField] private GameObject _loadingScreen;
-        [SerializeField] private Transform _uiSceneContainer;
+        HideLoadingScreen();
+    }
 
-        private void Awake()
-        {
-            HideLoadingScreen();
-        }
+    public void ShowLoadingScreen()
+    {
+        _loadingScreen.SetActive(true);
+    }
+    
+    public void HideLoadingScreen()
+    {
+        Debug.Log("Loading screen close");
+        _loadingScreen.SetActive(false);
+    }
 
-        public void ShowLoadingScreen()
-        {
-            _loadingScreen.SetActive(true);
-        }
+    public void AttachSceneUI(GameObject sceneUI)
+    {
+        ClearSceneUI();
         
-        public void HideLoadingScreen()
-        {
-            _loadingScreen.SetActive(false);
-        }
+        sceneUI.transform.SetParent(_uiSceneContainer, false);
+    }
 
-        public void AttachSceneUI(GameObject sceneUI)
+    private void ClearSceneUI()
+    {
+        var childCount = _uiSceneContainer.childCount;
+        for (var i = 0; i < childCount; i++)
         {
-            ClearSceneUI();
-            
-            sceneUI.transform.SetParent(_uiSceneContainer, false);
-        }
-
-        private void ClearSceneUI()
-        {
-            var childCount = _uiSceneContainer.childCount;
-            for (var i = 0; i < childCount; i++)
-            {
-                Destroy(_uiSceneContainer.GetChild(i).gameObject);
-            }
+            Destroy(_uiSceneContainer.GetChild(i).gameObject);
         }
     }
 }

@@ -1,39 +1,36 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace mBuilding.Scripts.Game.State.cmd
+public class CommandProcessor : ICommandProcessor
 {
-    public class CommandProcessor : ICommandProcessor
+    private readonly IGameStateProvider _gameStateProvider;
+    private readonly Dictionary<Type, object> _handlesMap = new();
+
+    public CommandProcessor(IGameStateProvider gameStateProvider)
     {
-        private readonly IGameStateProvider _gameStateProvider;
-        private readonly Dictionary<Type, object> _handlesMap = new();
+        _gameStateProvider = gameStateProvider;
+    }
+    
+    public void RegisterHandler<TCommand>(ICommandHandler<TCommand> handler) where TCommand : ICommand
+    {
+        _handlesMap[typeof(TCommand)] = handler;
+    }
 
-        public CommandProcessor(IGameStateProvider gameStateProvider)
+    public bool Process<TCommand>(TCommand command) where TCommand : ICommand
+    {
+        if (_handlesMap.TryGetValue(typeof(TCommand), out var handler))
         {
-            _gameStateProvider = gameStateProvider;
-        }
-        
-        public void RegisterHandler<TCommand>(ICommandHandler<TCommand> handler) where TCommand : ICommand
-        {
-            _handlesMap[typeof(TCommand)] = handler;
-        }
+            var typedHandler = (ICommandHandler<TCommand>)handler;
+            var result = typedHandler.Handle(command);
 
-        public bool Process<TCommand>(TCommand command) where TCommand : ICommand
-        {
-            if (_handlesMap.TryGetValue(typeof(TCommand), out var handler))
+            if (result)
             {
-                var typedHandler = (ICommandHandler<TCommand>)handler;
-                var result = typedHandler.Handle(command);
-
-                if (result)
-                {
-                    _gameStateProvider.SaveGameState();
-                }
-
-                return result;
+                _gameStateProvider.SaveGameState();
             }
 
-            return false;
+            return result;
         }
+
+        return false;
     }
 }

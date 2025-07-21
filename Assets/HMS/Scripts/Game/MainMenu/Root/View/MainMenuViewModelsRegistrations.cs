@@ -1,12 +1,10 @@
-﻿using BaCon;
+using BaCon;
 
-namespace mBuilding.Scripts.Game.MainMenu.Root.View
+public static class MainMenuViewModelsRegistrations
 {
-    public static class MainMenuViewModelsRegistrations
+    public static void Register(DIContainer container)
     {
-        public static void Register(DIContainer container)
-        {
-            container.RegisterFactory(c => new UIMainMenuRootViewModel()).AsSingle();
-        }
+        container.RegisterFactory(c => new MainMenuUIManager(container)).AsSingle();
+        container.RegisterFactory(c => new UIMainMenuRootViewModel()).AsSingle();
     }
 }

@@ -1,12 +1,9 @@
 ﻿using System.Threading.Tasks;
 
-namespace mBuilding.Scripts.Game.Settings
+public interface ISettingsProvider
 {
-    public interface ISettingsProvider
-    {
-        GameSettings GameSettings { get; }
-        ApplicationSettings ApplicationSettings { get; }
+    GameSettings GameSettings { get; }
+    ApplicationSettings ApplicationSettings { get; }
 
-        Task<GameSettings> LoadGameSettings();
-    }
+    Task<GameSettings> LoadGameSettings();
 }

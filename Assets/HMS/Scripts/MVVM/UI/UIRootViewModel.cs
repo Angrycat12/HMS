@@ -4,66 +4,63 @@ using System.Linq;
 using ObservableCollections;
 using R3;
 
-namespace mBuilding.Scripts.MVVM.UI
+public class UIRootViewModel : IDisposable
 {
-    public class UIRootViewModel : IDisposable
+    public ReadOnlyReactiveProperty<WindowViewModel> OpenedScreen => _openedScreen;
+    public IObservableCollection<WindowViewModel> OpenedPopups => _openedPopups;
+
+    private readonly ReactiveProperty<WindowViewModel> _openedScreen = new(null);
+    private readonly ObservableList<WindowViewModel> _openedPopups = new();
+    private readonly Dictionary<WindowViewModel, IDisposable> _popupSubscriptions = new();
+
+    public void Dispose()
     {
-        public ReadOnlyReactiveProperty<WindowViewModel> OpenedScreen => _openedScreen;
-        public IObservableCollection<WindowViewModel> OpenedPopups => _openedPopups;
+        CloseAllPopups();
+        _openedScreen.Value?.Dispose();
+    }
 
-        private readonly ReactiveProperty<WindowViewModel> _openedScreen = new(null);
-        private readonly ObservableList<WindowViewModel> _openedPopups = new();
-        private readonly Dictionary<WindowViewModel, IDisposable> _popupSubscriptions = new();
+    public void OpenScreen(WindowViewModel screenViewModel)
+    {
+        _openedScreen.Value?.Dispose();
+        _openedScreen.Value = screenViewModel;
+    }
 
-        public void Dispose()
+    public void OpenPopup(WindowViewModel popupViewModel)
+    {
+        if (_openedPopups.Contains(popupViewModel))
         {
-            CloseAllPopups();
-            _openedScreen.Value?.Dispose();
+            return;
         }
 
-        public void OpenScreen(WindowViewModel screenViewModel)
+        var subscription = popupViewModel.CloseRequested.Subscribe(ClosePopup);
+        _popupSubscriptions.Add(popupViewModel, subscription);
+        _openedPopups.Add(popupViewModel);
+    }
+
+    public void ClosePopup(WindowViewModel popupViewModel)
+    {
+        if (_openedPopups.Contains(popupViewModel))
         {
-            _openedScreen.Value?.Dispose();
-            _openedScreen.Value = screenViewModel;
+            popupViewModel.Dispose();
+            _openedPopups.Remove(popupViewModel);
+
+            var popupSubscription = _popupSubscriptions[popupViewModel];
+            popupSubscription?.Dispose();
+            _popupSubscriptions.Remove(popupViewModel);
         }
+    }
 
-        public void OpenPopup(WindowViewModel popupViewModel)
+    public void ClosePopup(string popupId)
+    {
+        var openedPopupViewModel = _openedPopups.FirstOrDefault(p => p.Id == popupId);
+        ClosePopup(openedPopupViewModel);
+    }
+
+    public void CloseAllPopups()
+    {
+        foreach (var openedPopup in _openedPopups)
         {
-            if (_openedPopups.Contains(popupViewModel))
-            {
-                return;
-            }
-
-            var subscription = popupViewModel.CloseRequested.Subscribe(ClosePopup);
-            _popupSubscriptions.Add(popupViewModel, subscription);
-            _openedPopups.Add(popupViewModel);
-        }
-
-        public void ClosePopup(WindowViewModel popupViewModel)
-        {
-            if (_openedPopups.Contains(popupViewModel))
-            {
-                popupViewModel.Dispose();
-                _openedPopups.Remove(popupViewModel);
-
-                var popupSubscription = _popupSubscriptions[popupViewModel];
-                popupSubscription?.Dispose();
-                _popupSubscriptions.Remove(popupViewModel);
-            }
-        }
-
-        public void ClosePopup(string popupId)
-        {
-            var openedPopupViewModel = _openedPopups.FirstOrDefault(p => p.Id == popupId);
-            ClosePopup(openedPopupViewModel);
-        }
-
-        public void CloseAllPopups()
-        {
-            foreach (var openedPopup in _openedPopups)
-            {
-                ClosePopup(openedPopup);
-            }
+            ClosePopup(openedPopup);
         }
     }
 }

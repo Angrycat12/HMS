@@ -1,79 +1,79 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using mBuilding.Scripts.Game.Gameplay.Commands;
-using mBuilding.Scripts.Game.Gameplay.View.GameResources;
-using mBuilding.Scripts.Game.State.cmd;
-using mBuilding.Scripts.Game.State.GameResources;
 using ObservableCollections;
 using R3;
 
-namespace mBuilding.Scripts.Game.Gameplay.Services
+
+public class ResourcesService : IDisposable
 {
-    public class ResourcesService
+    public readonly ObservableList<ResourceViewModel> Resources = new();
+
+    private readonly Dictionary<ResourceType, ResourceViewModel> _resourcesMap = new();
+    private readonly ICommandProcessor _cmd;
+    private readonly CompositeDisposable _disposables = new();
+
+    public ResourcesService(ObservableList<Resource> resources, ICommandProcessor cmd)
     {
-        public readonly ObservableList<ResourceViewModel> Resources = new();
+        _cmd = cmd;
 
-        private readonly Dictionary<ResourceType, ResourceViewModel> _resourcesMap = new();
-        private readonly ICommandProcessor _cmd;
+        resources.ForEach(CreateResourceViewModel);
+        _disposables.Add(resources.ObserveAdd().Subscribe(e => CreateResourceViewModel(e.Value)));
+        _disposables.Add(resources.ObserveRemove().Subscribe(e => RemoveResourceViewModel(e.Value)));
+    }
 
-        public ResourcesService(ObservableList<Resource> resources, ICommandProcessor cmd)
+    public bool AddResources(ResourceType resourceType, int amount)
+    {
+        var command = new CmdResourcesAdd(resourceType, amount);
+
+        return _cmd.Process(command);
+    }
+
+    public bool TrySpendResources(ResourceType resourceType, int amount)
+    {
+        var command = new CmdResourcesSpend(resourceType, amount);
+
+        return _cmd.Process(command);
+    }
+
+    public bool IsEnoughResources(ResourceType resourceType, int amount)
+    {
+        if (_resourcesMap.TryGetValue(resourceType, out var resourceViewModel))
         {
-            _cmd = cmd;
-            
-            resources.ForEach(CreateResourceViewModel);
-            resources.ObserveAdd().Subscribe(e => CreateResourceViewModel(e.Value));
-            resources.ObserveRemove().Subscribe(e => RemoveResourceViewModel(e.Value));
+            return resourceViewModel.Amount.CurrentValue >= amount;
         }
 
-        public bool AddResources(ResourceType resourceType, int amount)
-        {
-            var command = new CmdResourcesAdd(resourceType, amount);
+        return false;
+    }
 
-            return _cmd.Process(command);
-        }
-        
-        public bool TrySpendResources(ResourceType resourceType, int amount)
+    public Observable<int> ObserveResource(ResourceType resourceType)
+    {
+        if (_resourcesMap.TryGetValue(resourceType, out var resourceViewModel))
         {
-            var command = new CmdResourcesSpend(resourceType, amount);
-
-            return _cmd.Process(command);
+            return resourceViewModel.Amount;
         }
 
-        public bool IsEnoughResources(ResourceType resourceType, int amount)
-        {
-            if (_resourcesMap.TryGetValue(resourceType, out var resourceViewModel))
-            {
-                return resourceViewModel.Amount.CurrentValue >= amount;
-            }
+        throw new Exception($"Resource of type {resourceType} doesn't exist");
+    }
 
-            return false;
-        }
-        
-        public Observable<int> ObserveResource(ResourceType resourceType)
-        {
-            if (_resourcesMap.TryGetValue(resourceType, out var resourceViewModel))
-            {
-                return resourceViewModel.Amount;
-            }
+    private void CreateResourceViewModel(Resource resource)
+    {
+        var resourceViewModel = new ResourceViewModel(resource);
+        _resourcesMap[resource.ResourceType] = resourceViewModel;
 
-            throw new Exception($"Resource of type {resourceType} doesn't exist");
-        }
+        Resources.Add(resourceViewModel);
+    }
 
-        private void CreateResourceViewModel(Resource resource)
+    private void RemoveResourceViewModel(Resource resource)
+    {
+        if (_resourcesMap.TryGetValue(resource.ResourceType, out var resourceViewModel))
         {
-            var resourceViewModel = new ResourceViewModel(resource);
-            _resourcesMap[resource.ResourceType] = resourceViewModel;
-            
-            Resources.Add(resourceViewModel);
+            Resources.Remove(resourceViewModel);
+            _resourcesMap.Remove(resource.ResourceType);
         }
-        
-        private void RemoveResourceViewModel(Resource resource)
-        {
-            if (_resourcesMap.TryGetValue(resource.ResourceType, out var resourceViewModel))
-            {
-                Resources.Remove(resourceViewModel);
-                _resourcesMap.Remove(resource.ResourceType);
-            }
-        }
+    }
+
+    public void Dispose()
+    {
+        _disposables.Dispose();
     }
 }
