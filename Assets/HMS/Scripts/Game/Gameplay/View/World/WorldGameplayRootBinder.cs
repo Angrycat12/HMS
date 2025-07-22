@@ -19,10 +19,10 @@ public class WorldGameplayRootBinder : MonoBehaviour
     [SerializeField] private NoiseMapBinder _prefabTemperatureMap;
     [SerializeField] private NoiseMapBinder _prefabVegetationMap;
     [SerializeField] private BiomeBinder _prefabBiome;
-    // [SerializeField] private RiverBinder _prefabRiver;
+    [SerializeField] private RiverBinder _prefabRiver;
 
-    // [Header("Infrastructure")]
-    // [SerializeField] private CityBinder _prefabCity;
+    [Header("Infrastructure")]
+    [SerializeField] private CityBinder _prefabCity;
     // [SerializeField] private RoadBinder _prefabRoad;
 
     [Header("Political")]
@@ -109,6 +109,26 @@ public class WorldGameplayRootBinder : MonoBehaviour
     private void DeleteBiome(BiomeViewModel biomeViewModel)
     {
         // Destroy();
+    }
+
+    private void CreateRiver(RiverViewModel riverViewModel)
+    {
+        Instantiate(_prefabRiver).Bind(riverViewModel);
+    }
+
+    private void DeleteRiver()
+    {
+        
+    }
+
+    private void CreateCity(CityViewModel cityViewModel)
+    {
+        Instantiate(_prefabCity).Bind(cityViewModel);
+    }
+
+    private void DeleteCity()
+    {
+
     }
 
     private void CreateRegion(RegionViewModel regionViewModel)

@@ -24,6 +24,7 @@ public static class GameplayRegistrations
         cmd.RegisterHandler(new CmdCreateRiverHandler(gameState));
         cmd.RegisterHandler(new CmdCreateBiomesHandler(gameState));
         // Infrastructure
+        cmd.RegisterHandler(new CmdCreateQualityOfCityLocationsMapHandler(gameState));
         cmd.RegisterHandler(new CmdCreateCityHandler(gameState));
         // Political
 

@@ -14,8 +14,10 @@ public class World
     public readonly ReactiveProperty<float[,]> HumidityMap;
     public readonly ReactiveProperty<float[,]> TemperatureMap;
     public readonly ReactiveProperty<float[,]> VegetationMap;
+    public readonly ReactiveProperty<float[,]> QualityOfCityLocations;
     public readonly ObservableList<River> Rivers;
     public readonly ObservableList<Biome> Biomes;
+    public readonly ObservableList<City> Cities;
     public readonly ObservableList<Region> Regions;
     public readonly ObservableList<Country> Countries;
 
@@ -50,6 +52,9 @@ public class World
         VegetationMap = new ReactiveProperty<float[,]>(data.vegetationMap);
         VegetationMap.Subscribe(e => data.vegetationMap = e);
 
+        QualityOfCityLocations = new ReactiveProperty<float[,]>(data.qualityOfCityLocations);
+        QualityOfCityLocations.Subscribe(e => data.qualityOfCityLocations = e);
+
         List<Biome> biomes = new();
         if (data.biomes is not null)
         {
@@ -73,6 +78,18 @@ public class World
         Rivers = new(rivers);
         Rivers.ObserveAdd().Subscribe(e => data.rivers.Add(e.Value.Origin));
         Rivers.ObserveRemove().Subscribe(e => data.rivers.Remove(e.Value.Origin));
+
+        List<City> cities = new();
+        if (data.cities is not null)
+        {
+            foreach (CityData c_data in data.cities)
+            {
+                cities.Add(new City(c_data));
+            }
+        }
+        Cities = new(cities);
+        Cities.ObserveAdd().Subscribe(e => data.cities.Add(e.Value.Origin));
+        Cities.ObserveRemove().Subscribe(e => data.cities.Remove(e.Value.Origin));
 
         // Regions = new(data.regions);
         // Regions.ObserveChanged().Subscribe(e => data.regions = Regions.ToList());
