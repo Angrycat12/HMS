@@ -9,6 +9,7 @@ public class NoiseMapBinder : MonoBehaviour
     private NoiseMapViewModel _viewModel;
     private int _width;
     private int _height;
+    private Texture2D _texture;
     [SerializeField] private Color MaxValue;
     [SerializeField] private Color MinValue;
 
@@ -19,6 +20,7 @@ public class NoiseMapBinder : MonoBehaviour
         {
             _width = viewModel.Map.Value.GetLength(0);
             _height = viewModel.Map.Value.GetLength(1);
+            GenerateTexture();
             VizualizeMap();
         }));
     }
@@ -28,7 +30,10 @@ public class NoiseMapBinder : MonoBehaviour
         SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
         if (spriteRenderer != null)
         {
-            spriteRenderer.sprite = Sprite.Create(GenerateTexture(_width, _height), new Rect(0, 0, _width, _height), new Vector2(0.5f, 0.5f), _width / _width);
+            if (_texture == null) GenerateTexture();
+            if (_texture.width != _width || _texture.height != _height) GenerateTexture();
+            
+            spriteRenderer.sprite = Sprite.Create(_texture, new Rect(0, 0, _width, _height), new Vector2(0.5f, 0.5f), _width / _width);
         }
         else
         {
@@ -40,23 +45,24 @@ public class NoiseMapBinder : MonoBehaviour
     {
         if (_width > 0 && _height > 0)
         {
+            GenerateTexture();
             VizualizeMap();
         }
     }
 
-    private Texture2D GenerateTexture(int Width, int Height)
+    private Texture2D GenerateTexture()
     {
-        Texture2D texture = new(Width, Height);
-        for (int x = 0; x < Width; x++)
+        _texture = new(_width, _height);
+        for (int x = 0; x < _width; x++)
         {
-            for (int y = 0; y < Height; y++)
+            for (int y = 0; y < _height; y++)
             {
                 float value = _viewModel.Map.Value[x, y];
-                texture.SetPixel(x, y, Color.Lerp(MinValue, MaxValue, value));
+                _texture.SetPixel(x, y, Color.Lerp(MinValue, MaxValue, value));
             }
         }
-        texture.Apply();
-        return texture;
+        _texture.Apply();
+        return _texture;
     }
 
     private void OnEnable()

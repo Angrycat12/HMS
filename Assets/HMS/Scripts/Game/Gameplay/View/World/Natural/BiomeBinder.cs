@@ -26,9 +26,9 @@ public class BiomeBinder : MonoBehaviour
         Height = viewModel.Height.Value;
 
         _disposables.Add(viewModel.AvarageHeight.Subscribe(e => AvarageHeight = e));
-        // _disposables.Add(viewModel.AvarageHumidity.Subscribe(e => AvarageHumidity = e));
-        // _disposables.Add(viewModel.AvarageTemperature.Subscribe(e => AvarageTemperature = e));
-        // _disposables.Add(viewModel.AvarageVegetation.Subscribe(e => AvarageVegetation = e));
+        _disposables.Add(viewModel.AvarageHumidity.Subscribe(e => AvarageHumidity = e));
+        _disposables.Add(viewModel.AvarageTemperature.Subscribe(e => AvarageTemperature = e));
+        _disposables.Add(viewModel.AvarageVegetation.Subscribe(e => AvarageVegetation = e));
 
         Visualize();
     }

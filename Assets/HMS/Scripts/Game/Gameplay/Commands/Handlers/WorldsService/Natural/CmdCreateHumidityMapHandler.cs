@@ -26,6 +26,7 @@ public class CmdCreateHumidityMapHandler: ICommandHandler<CmdCreateHumidityMap>
         }
 
         _gameState.Worlds.FirstOrDefault(w => w.Origin.id == command.WorldId).HumidityMap.OnNext(answer);
+        
         return true;
     }
 }

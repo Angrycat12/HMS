@@ -93,7 +93,7 @@ public class PlayerPrefsGameStateProvider : IGameStateProvider
         {
             Worlds = new List<WorldData>()
             {
-                new() { id = 0, name = "", seed = 000000, width = 1500, height = 1000, waterLevel = 0.02f }
+                new() { id = 0, name = "", seed = 000000, width = 150, height = 100, waterLevel = 0.02f, rivers = new(), biomes = new(), cities = new(), regions = new(), countries = new() }
             },
             Resources = new List<ResourceData>()
             {

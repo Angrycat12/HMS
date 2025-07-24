@@ -14,6 +14,7 @@ public class WorldService : IDisposable
     public readonly ReactiveProperty<int> Height;
     public readonly ReactiveProperty<int> Seed;
     public readonly ReactiveProperty<float> WaterLevel;
+    public readonly ReactiveProperty<int> CityCount;
     public readonly ReactiveProperty<int> BiomeCount;
     public readonly ReactiveProperty<int> RegionCount;
     public readonly ReactiveProperty<int> CountryCount;
@@ -40,6 +41,8 @@ public class WorldService : IDisposable
 
         BiomeCount = new(100);
         _disposables.Add(BiomeCount.Skip(1).Subscribe(e => CreateBiomes()));
+
+        CityCount = new(2);
 
         _cmd = cmd;
     }
@@ -97,15 +100,15 @@ public class WorldService : IDisposable
         return answer;
     }
 
-    // public List<CityViewModel> GetCityViewModels()
-    // {
-    //     List<CityViewModel> answer = new();
-    //     foreach (City city in world.Cities)
-    //     {
-    //         answer.Add(new(this, city));
-    //     }
-    //     return answer;
-    // }
+    public List<CityViewModel> GetCityViewModels()
+    {
+        List<CityViewModel> answer = new();
+        foreach (City city in world.Cities)
+        {
+            answer.Add(new(this, city));
+        }
+        return answer;
+    }
     #endregion
 
     #region Create
@@ -147,10 +150,10 @@ public class WorldService : IDisposable
         world.HeightMap.Value, world.HumidityMap.Value, world.TemperatureMap.Value, world.VegetationMap.Value));
     }
 
-    //  public bool CreateCities()
-    //  {
-    //      return _cmd.Process(new CmdCreateCity());
-    //  }
+    public bool CreateCities()
+    {
+        return _cmd.Process(new CmdCreateCity(world.Origin.id, Width.Value, Height.Value, CityCount.Value, world.QualityOfCityLocations.Value));
+    }
 
     //  public bool CreateRoads()
     //  {

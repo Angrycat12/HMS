@@ -20,6 +20,7 @@ public class WorldGameplayRootViewModel : UIRootViewModel
     public ObservableList<BiomeViewModel> BiomeViewModels;
     // Infrastructure
     public ObservableList<CityViewModel> CityViewModels;
+    public ObservableList<RoadViewModel> RoadViewModels;
     // Political
     public ObservableList<RegionViewModel> RegionViewModels;
     public ObservableList<CountryViewModel> CountryViewModels;
@@ -42,10 +43,11 @@ public class WorldGameplayRootViewModel : UIRootViewModel
         HumidityViewModel = worldService.GetHumidityViewModel();
         TemperatureViewModel = worldService.GetTemperatureViewModel();
         VegetationViewModel = worldService.GetVegetationViewModel();
-        // RiverViewModels = new(worldService.GetRiverViewModels());
+        RiverViewModels = new(worldService.GetRiverViewModels());
         BiomeViewModels = new(worldService.GetBiomeViewModels());
 
-        //CityViewModels = new(worldService.GetCityViewModels());
+        CityViewModels = new(worldService.GetCityViewModels());
+        // RoadViewModels = new(worldService.GetRoadViewModels());
 
         // RegionViewModels = new(worldService.GetRegionViewModels());
         // CountryViewModel = mew(worldService.GetCountryViewModels());

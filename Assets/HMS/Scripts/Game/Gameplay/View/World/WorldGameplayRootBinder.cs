@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using ObservableCollections;
 using R3;
 using UnityEngine;
@@ -12,6 +13,9 @@ public class WorldGameplayRootBinder : MonoBehaviour
     [Range(0, 999999)] public int Seed;
     [Range(0, 1)] public float WaterLevel;
     [Range(1, 1000)] public int BiomeCount;
+    [Range(1, 1000)] public int CityCount;
+    [Range(1, 1000)] public int RegionCount;
+    [Range(1, 1000)] public int CountryCount;
 
     [Header("Natural")]
     [SerializeField] private NoiseMapBinder _prefabHeightMap;
@@ -19,15 +23,21 @@ public class WorldGameplayRootBinder : MonoBehaviour
     [SerializeField] private NoiseMapBinder _prefabTemperatureMap;
     [SerializeField] private NoiseMapBinder _prefabVegetationMap;
     [SerializeField] private BiomeBinder _prefabBiome;
+    private List<GameObject> Biomes;
     [SerializeField] private RiverBinder _prefabRiver;
+    private List<GameObject> Rivers;
 
     [Header("Infrastructure")]
     [SerializeField] private CityBinder _prefabCity;
-    // [SerializeField] private RoadBinder _prefabRoad;
+    private List<GameObject> Cities;
+    [SerializeField] private RoadBinder _prefabRoad;
+    private List<GameObject> Roads;
 
     [Header("Political")]
     [SerializeField] private RegionBinder _prefabRegion;
+    private List<GameObject> Regions;
     [SerializeField] private CountryBinder _prefabCountry;
+    private List<GameObject> Country;
 
     private readonly CompositeDisposable _disposables = new();
 
@@ -37,6 +47,9 @@ public class WorldGameplayRootBinder : MonoBehaviour
     private ReactiveProperty<int> _seed;
     private ReactiveProperty<float> _waterLevel;
     private ReactiveProperty<int> _biomeCount;
+    private ReactiveProperty<int> _cityCount;
+    private ReactiveProperty<int> _regionCount;
+    private ReactiveProperty<int> _countryCount;
 
     private WorldGameplayRootViewModel _viewModel;
 
@@ -59,9 +72,21 @@ public class WorldGameplayRootBinder : MonoBehaviour
         _biomeCount = viewModel.BiomeCount;
 
         CreateNoiseMap(viewModel.HeightViewModel, _prefabHeightMap);
-        // CreateNoiseMap(viewModel.HumidityViewModel, _prefabHumidityMap);
-        // CreateNoiseMap(viewModel.TemperatureViewModel, _prefabTemperatureMap);
-        // CreateNoiseMap(viewModel.VegetationViewModel, _prefabVegetationMap);
+        CreateNoiseMap(viewModel.HumidityViewModel, _prefabHumidityMap);
+        CreateNoiseMap(viewModel.TemperatureViewModel, _prefabTemperatureMap);
+        CreateNoiseMap(viewModel.VegetationViewModel, _prefabVegetationMap);
+
+        viewModel.RiverViewModels.ForEach(m => CreateRiver(m));
+        _disposables.Add(viewModel.RiverViewModels.ObserveAdd().Subscribe(e =>
+        {
+            CreateRiver(e.Value);
+        }
+        ));
+        _disposables.Add(viewModel.RiverViewModels.ObserveRemove().Subscribe(e =>
+        {
+            DeleteRiver(e.Value);
+        }
+        ));
 
         viewModel.BiomeViewModels.ForEach(m => CreateBiome(m));
         _disposables.Add(viewModel.BiomeViewModels.ObserveAdd().Subscribe(e =>
@@ -72,6 +97,18 @@ public class WorldGameplayRootBinder : MonoBehaviour
         _disposables.Add(viewModel.BiomeViewModels.ObserveRemove().Subscribe(e =>
         {
             DeleteBiome(e.Value);
+        }
+        ));
+
+        viewModel.CityViewModels.ForEach(m => CreateCity(m));
+        _disposables.Add(viewModel.CityViewModels.ObserveAdd().Subscribe(e =>
+        {
+            CreateCity(e.Value);
+        }
+        ));
+        _disposables.Add(viewModel.CityViewModels.ObserveRemove().Subscribe(e =>
+        {
+            DeleteCity(e.Value);
         }
         ));
         // _disposables.Add(viewModel.RegionViewModels.ObserveAdd().Subscribe(e =>
@@ -96,60 +133,80 @@ public class WorldGameplayRootBinder : MonoBehaviour
         // ));
     }
 
-    private void CreateNoiseMap(NoiseMapViewModel noiseViewModel, NoiseMapBinder noiseMapBinder)
-    {
-        Instantiate(noiseMapBinder).Bind(noiseViewModel);
-    }
+    #region Create
+        private void CreateNoiseMap(NoiseMapViewModel noiseViewModel, NoiseMapBinder noiseMapBinder)
+        {
+            Instantiate(noiseMapBinder).Bind(noiseViewModel);
+        }
 
-    private void CreateBiome(BiomeViewModel biomeViewModel)
-    {
-        Instantiate(_prefabBiome).Bind(biomeViewModel);
-    }
+        private void CreateRiver(RiverViewModel riverViewModel)
+        {
+            var river = Instantiate(_prefabRiver, gameObject.transform);
+            river.Bind(riverViewModel);
+            Rivers.Add(river.gameObject);
+        }
 
-    private void DeleteBiome(BiomeViewModel biomeViewModel)
-    {
-        // Destroy();
-    }
+        private void CreateBiome(BiomeViewModel biomeViewModel)
+        {
+            var biome = Instantiate(_prefabBiome, gameObject.transform);
+            biome.Bind(biomeViewModel);
+            Biomes.Add(biome.gameObject);
+        }
 
-    private void CreateRiver(RiverViewModel riverViewModel)
-    {
-        Instantiate(_prefabRiver).Bind(riverViewModel);
-    }
+        private void CreateCity(CityViewModel cityViewModel)
+        {
+            var city = Instantiate(_prefabCity, cityViewModel.City.Origin.position, Quaternion.identity, gameObject.transform);
+            city.Bind(cityViewModel);
+            Cities.Add(city.gameObject);
+        }
 
-    private void DeleteRiver()
-    {
+        private void CreateRoad(RoadViewModel roadViewModel)
+        {
+            Instantiate(_prefabRoad, gameObject.transform).Bind(roadViewModel);
+        }
+    
+        private void CreateRegion(RegionViewModel regionViewModel)
+        {
+            Instantiate(_prefabRegion, gameObject.transform).Bind(regionViewModel);
+        }
+    
+        private void CreateCountry(CountryViewModel countryViewModel)
+        {
+            Instantiate(_prefabCountry, gameObject.transform).Bind(countryViewModel);
+        }
+    #endregion
+
+    #region Delete
+        private void DeleteRiver(RiverViewModel riverViewModel)
+        {
+            Destroy(Rivers.ElementAt(riverViewModel.River.Origin.id));
+        }
+    
+        private void DeleteBiome(BiomeViewModel biomeViewModel)
+        {
+            Destroy(Biomes.ElementAt(biomeViewModel.Biome.Origin.Id));
+        }
+    
+        private void DeleteCity(CityViewModel cityViewModel)
+        {
+            Destroy(Cities.ElementAt(cityViewModel.City.Origin.id));
+        }
+
+        private void DeleteRoad(RoadViewModel roadViewModel)
+        {
+            // Destroy(Roads.ElementAt(roadViewModel.Road.Origin.id));
+        }
+    
+        private void DeleteRegion(RegionViewModel biomeViewModel)
+        {
         
-    }
-
-    private void CreateCity(CityViewModel cityViewModel)
-    {
-        Instantiate(_prefabCity).Bind(cityViewModel);
-    }
-
-    private void DeleteCity()
-    {
-
-    }
-
-    private void CreateRegion(RegionViewModel regionViewModel)
-    {
-        Instantiate(_prefabRegion).Bind(regionViewModel);
-    }
-
-    private void DeleteRegion(RegionViewModel biomeViewModel)
-    {
-        // Instantiate(_prefabBiome).Bind(biomeViewModel);
-    }
-
-    private void CreateCountry(CountryViewModel countryViewModel)
-    {
-        Instantiate(_prefabCountry).Bind(countryViewModel);
-    }
-
-    private void DeleteCountry(CountryViewModel biomeViewModel)
-    {
-        // Instantiate(_prefabBiome).Bind(biomeViewModel);
-    }
+        }
+    
+        private void DeleteCountry(CountryViewModel biomeViewModel)
+        {
+            
+        }
+    #endregion
 
     private void OnDestroy()
     {

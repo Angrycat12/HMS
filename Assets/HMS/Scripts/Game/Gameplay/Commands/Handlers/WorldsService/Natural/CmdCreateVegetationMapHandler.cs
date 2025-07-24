@@ -26,6 +26,7 @@ public class CmdCreateVegetationMapHandler: ICommandHandler<CmdCreateVegetationM
         }
 
         _gameState.Worlds.FirstOrDefault(w => w.Origin.id == command.WorldId).VegetationMap.OnNext(answer);
+        
         return true;
     }
 }
