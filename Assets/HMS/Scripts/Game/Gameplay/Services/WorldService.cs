@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using ObservableCollections;
 using R3;
-using Unity.Mathematics;
 using UnityEngine;
 
 public class WorldService : IDisposable
@@ -62,12 +61,32 @@ public class WorldService : IDisposable
     #region GetViewModel
     public NoiseMapViewModel GetHeightViewModel()
     {
-        return new NoiseMapViewModel(world.HeightMap);
+        ReactiveProperty<float> Amplitude = new(1);
+        ReactiveProperty<float> Frequency = new(1);
+        ReactiveProperty<float> Period = new(1);
+        ReactiveProperty<int> Octaves = new(4);
+
+        _disposables.Add(Amplitude.Merge(Frequency)
+                                  .Merge(Period)
+                                  .Subscribe(e => CreateHeightMap(1, Amplitude.Value, Frequency.Value, Period.Value, Octaves.Value)));
+        _disposables.Add(Octaves.Subscribe(e => CreateHeightMap(1, Amplitude.Value, Frequency.Value, Period.Value, Octaves.Value)));
+
+        return new NoiseMapViewModel(world.HeightMap, Amplitude, Frequency, Period, Octaves);
     }
 
     public NoiseMapViewModel GetHumidityViewModel()
     {
-        return new NoiseMapViewModel(world.HumidityMap);
+        ReactiveProperty<float> Amplitude = new(1);
+        ReactiveProperty<float> Frequency = new(1);
+        ReactiveProperty<float> Period = new(1);
+        ReactiveProperty<int> Octaves = new(4);
+
+        _disposables.Add(Amplitude.Merge(Frequency)
+                                  .Merge(Period)
+                                  .Subscribe(e => CreateHumidityMap(1, Amplitude.Value, Frequency.Value, Period.Value, Octaves.Value)));
+        _disposables.Add(Octaves.Subscribe(e => CreateHumidityMap(1, Amplitude.Value, Frequency.Value, Period.Value, Octaves.Value)));
+
+        return new NoiseMapViewModel(world.HumidityMap, Amplitude, Frequency, Period, Octaves);
     }
 
     public NoiseMapViewModel GetTemperatureViewModel()
@@ -77,7 +96,17 @@ public class WorldService : IDisposable
 
     public NoiseMapViewModel GetVegetationViewModel()
     {
-        return new NoiseMapViewModel(world.VegetationMap);
+        ReactiveProperty<float> Amplitude = new(1);
+        ReactiveProperty<float> Frequency = new(1);
+        ReactiveProperty<float> Period = new(1);
+        ReactiveProperty<int> Octaves = new(4);
+
+        _disposables.Add(Amplitude.Merge(Frequency)
+                                  .Merge(Period)
+                                  .Subscribe(e => CreateVegetationMap(1, Amplitude.Value, Frequency.Value, Period.Value, Octaves.Value)));
+        _disposables.Add(Octaves.Subscribe(e => CreateVegetationMap(1, Amplitude.Value, Frequency.Value, Period.Value, Octaves.Value)));
+
+        return new NoiseMapViewModel(world.VegetationMap, Amplitude, Frequency, Period, Octaves);
     }
 
     public List<RiverViewModel> GetRiverViewModels()
@@ -112,16 +141,16 @@ public class WorldService : IDisposable
     #endregion
 
     #region Create
-    public bool CreateHeightMap(int scale)
+    public bool CreateHeightMap(int scale, float amplitude = 1f, float frequency = 1f, float period = 1f, int octaves = 4)
     {
         Debug.Log("Started create Height Map");
-        return _cmd.Process(new CmdCreateHeightMap(world.Origin.id, Width.Value, Height.Value, Seed.Value, scale));
+        return _cmd.Process(new CmdCreatePerlinMap(world.HeightMap, Width.Value, Height.Value, Seed.Value, scale, amplitude, frequency, period, octaves));
     }
 
-    public bool CreateHumidityMap(int scale)
+    public bool CreateHumidityMap(int scale, float amplitude = 1f, float frequency = 1f, float period = 1f, int octaves = 4)
     {
         Debug.Log("Started create Humidity Map");
-        return _cmd.Process(new CmdCreateHumidityMap(world.Origin.id, Width.Value, Height.Value, Seed.Value, scale));
+        return _cmd.Process(new CmdCreatePerlinMap(world.HumidityMap, Width.Value, Height.Value, Seed.Value, scale, amplitude, frequency, period, octaves));
     }
 
     public bool CreateTemperatureMap()
@@ -130,10 +159,10 @@ public class WorldService : IDisposable
         return _cmd.Process(new CmdCreateTemperatureMap(world.Origin.id, Width.Value, Height.Value, Seed.Value));
     }
 
-    public bool CreateVegetationMap(int scale)
+    public bool CreateVegetationMap(int scale, float amplitude = 1f, float frequency = 1f, float period = 1f, int octaves = 4)
     {
         Debug.Log("Started create Vegetation Map");
-        return _cmd.Process(new CmdCreateVegetationMap(world.Origin.id, Width.Value, Height.Value, Seed.Value, scale));
+        return _cmd.Process(new CmdCreatePerlinMap(world.VegetationMap, Width.Value, Height.Value, Seed.Value, scale, amplitude, frequency, period, octaves));
     }
 
     public bool CreateRiver()

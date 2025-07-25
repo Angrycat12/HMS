@@ -17,10 +17,8 @@ public static class GameplayRegistrations
 
         // World
         // Natural
-        cmd.RegisterHandler(new CmdCreateHeightMapHandler(gameState));
-        cmd.RegisterHandler(new CmdCreateHumidityMapHandler(gameState));
+        cmd.RegisterHandler(new CmdCreatePerlinMapHandler(gameState));
         cmd.RegisterHandler(new CmdCreateTemperatureMapHandler(gameState));
-        cmd.RegisterHandler(new CmdCreateVegetationMapHandler(gameState));
         cmd.RegisterHandler(new CmdCreateRiverHandler(gameState));
         cmd.RegisterHandler(new CmdCreateBiomesHandler(gameState));
         // Infrastructure

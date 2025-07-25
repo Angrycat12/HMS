@@ -23,21 +23,21 @@ public class WorldGameplayRootBinder : MonoBehaviour
     [SerializeField] private NoiseMapBinder _prefabTemperatureMap;
     [SerializeField] private NoiseMapBinder _prefabVegetationMap;
     [SerializeField] private BiomeBinder _prefabBiome;
-    private List<GameObject> Biomes;
+    private List<GameObject> Biomes = new();
     [SerializeField] private RiverBinder _prefabRiver;
-    private List<GameObject> Rivers;
+    private List<GameObject> Rivers = new();
 
     [Header("Infrastructure")]
     [SerializeField] private CityBinder _prefabCity;
-    private List<GameObject> Cities;
+    private List<GameObject> Cities = new();
     [SerializeField] private RoadBinder _prefabRoad;
-    private List<GameObject> Roads;
+    private List<GameObject> Roads = new();
 
     [Header("Political")]
     [SerializeField] private RegionBinder _prefabRegion;
-    private List<GameObject> Regions;
+    private List<GameObject> Regions = new();
     [SerializeField] private CountryBinder _prefabCountry;
-    private List<GameObject> Country;
+    private List<GameObject> Country = new();
 
     private readonly CompositeDisposable _disposables = new();
 
