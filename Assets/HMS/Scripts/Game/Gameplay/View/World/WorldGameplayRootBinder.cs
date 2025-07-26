@@ -155,7 +155,7 @@ public class WorldGameplayRootBinder : MonoBehaviour
 
         private void CreateCity(CityViewModel cityViewModel)
         {
-            var city = Instantiate(_prefabCity, cityViewModel.City.Origin.position, Quaternion.identity, gameObject.transform);
+            var city = Instantiate(_prefabCity, cityViewModel.City.Origin.position3, Quaternion.identity, gameObject.transform);
             city.Bind(cityViewModel);
             Cities.Add(city.gameObject);
         }

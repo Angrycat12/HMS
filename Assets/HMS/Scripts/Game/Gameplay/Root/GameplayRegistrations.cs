@@ -24,6 +24,7 @@ public static class GameplayRegistrations
         // Infrastructure
         cmd.RegisterHandler(new CmdCreateQualityOfCityLocationsMapHandler(gameState));
         cmd.RegisterHandler(new CmdCreateCityHandler(gameState));
+        cmd.RegisterHandler(new CmdCreateRoadHandler(gameState));
         // Political
 
 

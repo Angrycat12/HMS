@@ -17,7 +17,7 @@ class CmdCreateCityHandler : ICommandHandler<CmdCreateCity>
 
         for (int i = 0; i < command.Count; i++)
         {
-            Vector3 maxPointCord = new();
+            Vector2Int maxPointCord = new();
             float maxPointValue = 0;
 
             for (int x = 0; x < command.Width; x++)
@@ -33,7 +33,7 @@ class CmdCreateCityHandler : ICommandHandler<CmdCreateCity>
                     {
                         foreach (City city in world.Cities)
                         {
-                            if (50 <= Math.Abs(city.Origin.position.x - x) && 50 <= Math.Abs(city.Origin.position.y - y))
+                            if (50 <= Math.Abs(city.Origin.position2.x - x) && 50 <= Math.Abs(city.Origin.position2.y - y))
                             {
                                 maxPointValue = command.QualityOfCityLocations[x, y];
                                 maxPointCord.x = x;
@@ -46,7 +46,8 @@ class CmdCreateCityHandler : ICommandHandler<CmdCreateCity>
 
             world.Cities.Add(new City(new CityData()
             {
-                position = maxPointCord
+                position2 = maxPointCord,
+                position3 = new(maxPointCord.x, maxPointCord.y)
             }));
 
         }
