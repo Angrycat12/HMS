@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using ObservableCollections;
 using R3;
 using UnityEngine;
@@ -29,27 +31,32 @@ public class WorldService : IDisposable
 
         WaterLevel = world.WaterLevel;
 
-        _disposables.Add(world.Width.Skip(1).Subscribe(e => CreateMap()));
+        _disposables.Add(world.Width.Skip(1).Subscribe(async e => await CreateMap()));
         Width = world.Width;
 
-        _disposables.Add(world.Height.Skip(1).Subscribe(e => CreateMap()));
+        _disposables.Add(world.Height.Skip(1).Subscribe(async e => await CreateMap()));
         Height = world.Height;
 
-        _disposables.Add(world.Seed.Skip(1).Subscribe(e => CreateMap()));
+        _disposables.Add(world.Seed.Skip(1).Subscribe(async e => await CreateMap()));
         Seed = world.Seed;
 
         BiomeCount = new(100);
-        _disposables.Add(BiomeCount.Skip(1).Subscribe(e => CreateBiomes()));
+        _disposables.Add(BiomeCount.Skip(1).Subscribe(async e => await CreateBiomes()));
 
         CityCount = new(2);
 
         _cmd = cmd;
     }
 
-    public bool CreateMap()
+    public async Task<bool> CreateMap(CancellationToken cancellationToken = default)
     {
-        return CreateHeightMap(1) && CreateHumidityMap(1) && CreateTemperatureMap() &&
-            CreateVegetationMap(1) && CreateBiomes();
+        bool answer = false;
+        answer = await CreateHeightMap(1, 1, 1, 1, 4, cancellationToken);
+        answer &= await CreateHumidityMap(1, 1, 1, 1, 4, cancellationToken);
+        answer &= await CreateTemperatureMap(cancellationToken);
+        answer &= await CreateVegetationMap(1, 1, 1, 1, 4, cancellationToken); 
+        answer &= await CreateBiomes(cancellationToken);
+        return answer;
         // _cmd.Process(new CmdCreateRegion()) && _cmd.Process(new CmdCreateCountry());
     }
 
@@ -59,7 +66,7 @@ public class WorldService : IDisposable
     }
 
     #region GetViewModel
-    public NoiseMapViewModel GetHeightViewModel()
+    public NoiseMapViewModel GetHeightViewModel(CancellationToken cancellationToken = default)
     {
         ReactiveProperty<float> Amplitude = new(1);
         ReactiveProperty<float> Frequency = new(1);
@@ -68,13 +75,13 @@ public class WorldService : IDisposable
 
         _disposables.Add(Amplitude.Merge(Frequency)
                                   .Merge(Period)
-                                  .Subscribe(e => CreateHeightMap(1, Amplitude.Value, Frequency.Value, Period.Value, Octaves.Value)));
-        _disposables.Add(Octaves.Subscribe(e => CreateHeightMap(1, Amplitude.Value, Frequency.Value, Period.Value, Octaves.Value)));
+                                  .Subscribe(async e => await CreateHeightMap(1, Amplitude.Value, Frequency.Value, Period.Value, Octaves.Value, cancellationToken)));
+        _disposables.Add(Octaves.Subscribe(async e => await CreateHeightMap(1, Amplitude.Value, Frequency.Value, Period.Value, Octaves.Value, cancellationToken)));
 
         return new NoiseMapViewModel(world.HeightMap, Amplitude, Frequency, Period, Octaves);
     }
 
-    public NoiseMapViewModel GetHumidityViewModel()
+    public NoiseMapViewModel GetHumidityViewModel(CancellationToken cancellationToken = default)
     {
         ReactiveProperty<float> Amplitude = new(1);
         ReactiveProperty<float> Frequency = new(1);
@@ -83,8 +90,8 @@ public class WorldService : IDisposable
 
         _disposables.Add(Amplitude.Merge(Frequency)
                                   .Merge(Period)
-                                  .Subscribe(e => CreateHumidityMap(1, Amplitude.Value, Frequency.Value, Period.Value, Octaves.Value)));
-        _disposables.Add(Octaves.Subscribe(e => CreateHumidityMap(1, Amplitude.Value, Frequency.Value, Period.Value, Octaves.Value)));
+                                  .Subscribe(async e => await CreateHumidityMap(1, Amplitude.Value, Frequency.Value, Period.Value, Octaves.Value, cancellationToken)));
+        _disposables.Add(Octaves.Subscribe(async e => await CreateHumidityMap(1, Amplitude.Value, Frequency.Value, Period.Value, Octaves.Value, cancellationToken)));
 
         return new NoiseMapViewModel(world.HumidityMap, Amplitude, Frequency, Period, Octaves);
     }
@@ -94,7 +101,7 @@ public class WorldService : IDisposable
         return new NoiseMapViewModel(world.TemperatureMap);
     }
 
-    public NoiseMapViewModel GetVegetationViewModel()
+    public NoiseMapViewModel GetVegetationViewModel(CancellationToken cancellationToken = default)
     {
         ReactiveProperty<float> Amplitude = new(1);
         ReactiveProperty<float> Frequency = new(1);
@@ -103,8 +110,8 @@ public class WorldService : IDisposable
 
         _disposables.Add(Amplitude.Merge(Frequency)
                                   .Merge(Period)
-                                  .Subscribe(e => CreateVegetationMap(1, Amplitude.Value, Frequency.Value, Period.Value, Octaves.Value)));
-        _disposables.Add(Octaves.Subscribe(e => CreateVegetationMap(1, Amplitude.Value, Frequency.Value, Period.Value, Octaves.Value)));
+                                  .Subscribe(async e => await CreateVegetationMap(1, Amplitude.Value, Frequency.Value, Period.Value, Octaves.Value, cancellationToken)));
+        _disposables.Add(Octaves.Subscribe(async e => await CreateVegetationMap(1, Amplitude.Value, Frequency.Value, Period.Value, Octaves.Value, cancellationToken)));
 
         return new NoiseMapViewModel(world.VegetationMap, Amplitude, Frequency, Period, Octaves);
     }
@@ -141,45 +148,45 @@ public class WorldService : IDisposable
     #endregion
 
     #region Create
-    public bool CreateHeightMap(int scale, float amplitude = 1f, float frequency = 1f, float period = 1f, int octaves = 4)
+    public async Task<bool> CreateHeightMap(int scale, float amplitude = 1f, float frequency = 1f, float period = 1f, int octaves = 4, CancellationToken cancellationToken = default)
     {
         Debug.Log("Started create Height Map");
-        return _cmd.Process(new CmdCreatePerlinMap(world.HeightMap, Width.Value, Height.Value, Seed.Value, scale, amplitude, frequency, period, octaves));
+        return await _cmd.Process(new CmdCreatePerlinMap(world.HeightMap, Width.Value, Height.Value, Seed.Value, scale, amplitude, frequency, period, octaves), cancellationToken);
     }
 
-    public bool CreateHumidityMap(int scale, float amplitude = 1f, float frequency = 1f, float period = 1f, int octaves = 4)
+    public async Task<bool> CreateHumidityMap(int scale, float amplitude = 1f, float frequency = 1f, float period = 1f, int octaves = 4, CancellationToken cancellationToken = default)
     {
         Debug.Log("Started create Humidity Map");
-        return _cmd.Process(new CmdCreatePerlinMap(world.HumidityMap, Width.Value, Height.Value, Seed.Value, scale, amplitude, frequency, period, octaves));
+        return await _cmd.Process(new CmdCreatePerlinMap(world.HumidityMap, Width.Value, Height.Value, Seed.Value, scale, amplitude, frequency, period, octaves), cancellationToken);
     }
 
-    public bool CreateTemperatureMap()
+    public async Task<bool> CreateTemperatureMap(CancellationToken cancellationToken = default)
     {
         Debug.Log("Started create Temperature Map");
-        return _cmd.Process(new CmdCreateTemperatureMap(world.Origin.id, Width.Value, Height.Value, Seed.Value));
+        return await _cmd.Process(new CmdCreateTemperatureMap(world.Origin.id, Width.Value, Height.Value, Seed.Value), cancellationToken);
     }
 
-    public bool CreateVegetationMap(int scale, float amplitude = 1f, float frequency = 1f, float period = 1f, int octaves = 4)
+    public async Task<bool> CreateVegetationMap(int scale, float amplitude = 1f, float frequency = 1f, float period = 1f, int octaves = 4, CancellationToken cancellationToken = default)
     {
         Debug.Log("Started create Vegetation Map");
-        return _cmd.Process(new CmdCreatePerlinMap(world.VegetationMap, Width.Value, Height.Value, Seed.Value, scale, amplitude, frequency, period, octaves));
+        return await _cmd.Process(new CmdCreatePerlinMap(world.VegetationMap, Width.Value, Height.Value, Seed.Value, scale, amplitude, frequency, period, octaves), cancellationToken);
     }
 
-    public bool CreateRiver()
+    public async Task<bool> CreateRiver(CancellationToken cancellationToken = default)
     {
         Debug.Log("Started create River Map");
         List<Vector2Int> sourceRiver = new() { new(UnityEngine.Random.Range(0, Width.Value), UnityEngine.Random.Range(0, Height.Value))};
-        return _cmd.Process(new CmdCreateRiver(world.Origin.id, sourceRiver, world.HeightMap.Value, WaterLevel.Value));
+        return await _cmd.Process(new CmdCreateRiver(world.Origin.id, sourceRiver, world.HeightMap.Value, WaterLevel.Value), cancellationToken);
     }
 
-    public bool CreateBiomes()
+    public async Task<bool> CreateBiomes(CancellationToken cancellationToken = default)
     {
         Debug.Log("Started create Biome Map");
-        return _cmd.Process(new CmdCreateBiomes(world.Origin.id, Width.Value, Height.Value, BiomeCount.Value, lloydRelaxations,
-        world.HeightMap.Value, world.HumidityMap.Value, world.TemperatureMap.Value, world.VegetationMap.Value));
+        return await _cmd.Process(new CmdCreateBiomes(world.Origin.id, Width.Value, Height.Value, BiomeCount.Value, lloydRelaxations,
+        world.HeightMap.Value, world.HumidityMap.Value, world.TemperatureMap.Value, world.VegetationMap.Value), cancellationToken);
     }
 
-    public bool CreateCities()
+    public async Task<bool> CreateCities(CancellationToken cancellationToken = default)
     {
         return _cmd.Process(new CmdCreateCity(world.Origin.id, Width.Value, Height.Value, CityCount.Value, world.QualityOfCityLocations.Value));
     }

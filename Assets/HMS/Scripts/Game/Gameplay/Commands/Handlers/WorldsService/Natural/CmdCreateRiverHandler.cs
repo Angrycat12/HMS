@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
 
-class CmdCreateRiverHandler : ICommandHandler<CmdCreateRiver>
+class CmdCreateRiverHandler : ICommandHandlerAsync<CmdCreateRiver>
 {
     private readonly GameStateProxy _gameState;
 
@@ -11,9 +13,18 @@ class CmdCreateRiverHandler : ICommandHandler<CmdCreateRiver>
         _gameState = gameState;
     }
 
-    public bool Handle(CmdCreateRiver command)
+    public async Task<bool> Handle(CmdCreateRiver command, CancellationToken token)
+    { 
+        List<River> Rivers = await Task.Run(() => NewMethod(command), token);
+
+        var r = _gameState.Worlds.FirstOrDefault(w => w.Origin.id == command.WorldId).Rivers;
+        Rivers.ForEach(x => r.Add(x));
+        return true;
+    }
+
+    private static List<River> NewMethod(CmdCreateRiver command)
     {
-        World world = _gameState.Worlds.FirstOrDefault(w => w.Origin.id == command.WorldId);
+        List<River> Rivers = new();
 
         List<Vector2Int> directions = new()
         {
@@ -26,7 +37,7 @@ class CmdCreateRiverHandler : ICommandHandler<CmdCreateRiver>
             new Vector2Int(1, -1), // Down-right
             new Vector2Int(-1, -1) // Down-left
         };
-        
+
         for (int i = 0; i < command.SourceRiver.Count; i++)
         {
 
@@ -66,8 +77,9 @@ class CmdCreateRiverHandler : ICommandHandler<CmdCreateRiver>
 
                 if (!breakGenerateRiver) river.Add(minPointCord);
             }
-            world.Rivers.Add(new River(new RiverData(river)));
+            Rivers.Add(new River(new RiverData(river)));
         }
-        return true;
+
+        return Rivers;
     }
 }

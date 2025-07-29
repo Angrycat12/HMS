@@ -105,7 +105,7 @@ public class GameEntryPoint
 
         var sceneEntryPoint = Object.FindFirstObjectByType<GameplayEntryPoint>();
         var gameplayContainer = _cachedSceneContainer = new DIContainer(_rootContainer);
-        sceneEntryPoint.Run(gameplayContainer, enterParams).Subscribe(gameplayExitParams => 
+        sceneEntryPoint.Run(gameplayContainer, enterParams, _coroutines).Subscribe(gameplayExitParams => 
         {
             _coroutines.StartCoroutine(LoadAndStartMainMenu(new MainMenuEnterParams()));
         });

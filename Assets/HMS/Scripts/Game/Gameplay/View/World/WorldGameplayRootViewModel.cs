@@ -1,5 +1,8 @@
+using System.Threading;
+using System.Threading.Tasks;
 using ObservableCollections;
 using R3;
+using UnityEngine;
 
 
 public class WorldGameplayRootViewModel : UIRootViewModel
@@ -25,31 +28,39 @@ public class WorldGameplayRootViewModel : UIRootViewModel
     public ObservableList<RegionViewModel> RegionViewModels;
     public ObservableList<CountryViewModel> CountryViewModels;
 
+    private readonly WorldService _worldService;
+
     public WorldGameplayRootViewModel(WorldService worldService)
     {
+        _worldService = worldService;
         Name = worldService.Name;
         Width = worldService.Width;
         Height = worldService.Height;
         Seed = worldService.Seed;
         WaterLevel = worldService.WaterLevel;
         BiomeCount = worldService.BiomeCount;
+    }
 
-        if (!worldService.IsWorldGenerated())
+    public async Task Start(CancellationToken cancellationToken = default)
+    {
+        if (!_worldService.IsWorldGenerated())
         {
-            worldService.CreateMap();
+            Debug.Log("start");
+            await _worldService.CreateMap(cancellationToken);
         }
+        
+        HeightViewModel = _worldService.GetHeightViewModel();
+        HumidityViewModel = _worldService.GetHumidityViewModel();
+        TemperatureViewModel = _worldService.GetTemperatureViewModel();
+        VegetationViewModel = _worldService.GetVegetationViewModel();
+        RiverViewModels = new(_worldService.GetRiverViewModels());
+        BiomeViewModels = new(_worldService.GetBiomeViewModels());
 
-        HeightViewModel = worldService.GetHeightViewModel();
-        HumidityViewModel = worldService.GetHumidityViewModel();
-        TemperatureViewModel = worldService.GetTemperatureViewModel();
-        VegetationViewModel = worldService.GetVegetationViewModel();
-        RiverViewModels = new(worldService.GetRiverViewModels());
-        BiomeViewModels = new(worldService.GetBiomeViewModels());
+        CityViewModels = new(_worldService.GetCityViewModels());
+        // RoadViewModels = new(_worldService.GetRoadViewModels());
 
-        CityViewModels = new(worldService.GetCityViewModels());
-        // RoadViewModels = new(worldService.GetRoadViewModels());
-
-        // RegionViewModels = new(worldService.GetRegionViewModels());
-        // CountryViewModel = mew(worldService.GetCountryViewModels());
+        // RegionViewModels = new(_worldService.GetRegionViewModels());
+        // CountryViewModel = mew(_worldService.GetCountryViewModels());
+        
     }
 }

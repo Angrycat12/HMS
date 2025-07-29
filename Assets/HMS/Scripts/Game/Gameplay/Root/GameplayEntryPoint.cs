@@ -6,13 +6,16 @@ public class GameplayEntryPoint : MonoBehaviour
 {
     [SerializeField] private UIGameplayRootBinder _sceneUIRootPrefab;
     [SerializeField] private WorldGameplayRootBinder _worldRootBinder;
+    private Coroutines _coroutines; 
 
-    public Observable<GameplayExitParams> Run(DIContainer gameplayContainer, GameplayEnterParams enterParams)
+    public Observable<GameplayExitParams> Run(DIContainer gameplayContainer, GameplayEnterParams enterParams, Coroutines coroutine)
     {
+        _coroutines = coroutine;
+        
         GameplayRegistrations.Register(gameplayContainer, enterParams);
         var gameplayViewModelsContainer = new DIContainer(gameplayContainer);
         GameplayViewModelsRegistrations.Register(gameplayViewModelsContainer);
-        
+
         InitWorld(gameplayViewModelsContainer);
         InitUI(gameplayViewModelsContainer);
 
@@ -26,7 +29,7 @@ public class GameplayEntryPoint : MonoBehaviour
 
     private void InitWorld(DIContainer viewsContainer)
     {
-        _worldRootBinder.Bind(viewsContainer.Resolve<WorldGameplayRootViewModel>());
+        _coroutines.StartCoroutine(_worldRootBinder.Bind(viewsContainer.Resolve<WorldGameplayRootViewModel>()));
     }
 
     private void InitUI(DIContainer viewsContainer)

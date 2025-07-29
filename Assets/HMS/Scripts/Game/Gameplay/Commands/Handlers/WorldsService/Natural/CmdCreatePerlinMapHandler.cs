@@ -1,6 +1,8 @@
+using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
 
-public class CmdCreatePerlinMapHandler: ICommandHandler<CmdCreatePerlinMap>
+public class CmdCreatePerlinMapHandler: ICommandHandlerAsync<CmdCreatePerlinMap>
 {
     private readonly GameStateProxy _gameState;
 
@@ -9,7 +11,15 @@ public class CmdCreatePerlinMapHandler: ICommandHandler<CmdCreatePerlinMap>
         _gameState = gameState;
     }
 
-    public bool Handle(CmdCreatePerlinMap command)
+    public async Task<bool> Handle(CmdCreatePerlinMap command, CancellationToken token)
+    {
+        float[,] answer = await Task.Run(() => NewMethod(command), token);
+        command.Map.OnNext(answer);
+
+        return true;
+    }
+
+    private float[,] NewMethod(CmdCreatePerlinMap command)
     {
         float[,] answer = new float[command.Width, command.Height];
 
@@ -23,11 +33,11 @@ public class CmdCreatePerlinMapHandler: ICommandHandler<CmdCreatePerlinMap>
 
                 for (int octave = 0; octave < command.Octaves; octave++)
                 {
-                    
+
                     float xCoord = (x + command.Period) / command.Width * currentFrequency;
                     float yCoord = (y + command.Period) / command.Height * currentFrequency;
 
-                    
+
                     float perlinValue = Mathf.PerlinNoise(xCoord, yCoord);
 
                     // Добавляем значение шума в итоговое, с учетом амплитуды
@@ -43,8 +53,6 @@ public class CmdCreatePerlinMapHandler: ICommandHandler<CmdCreatePerlinMap>
             }
         }
 
-        command.Map.OnNext(answer);
-
-        return true;
+        return answer;
     }
 }

@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using ObservableCollections;
 using R3;
 using UnityEngine;
@@ -53,7 +55,7 @@ public class WorldGameplayRootBinder : MonoBehaviour
 
     private WorldGameplayRootViewModel _viewModel;
 
-    public void Bind(WorldGameplayRootViewModel viewModel)
+    public IEnumerator Bind(WorldGameplayRootViewModel viewModel)
     {
         _viewModel = viewModel;
 
@@ -70,6 +72,9 @@ public class WorldGameplayRootBinder : MonoBehaviour
         _seed = viewModel.Seed;
         _waterLevel = viewModel.WaterLevel;
         _biomeCount = viewModel.BiomeCount;
+
+        Task task = viewModel.Start(destroyCancellationToken);
+        yield return new WaitUntil(() => task.IsCompleted);
 
         CreateNoiseMap(viewModel.HeightViewModel, _prefabHeightMap);
         CreateNoiseMap(viewModel.HumidityViewModel, _prefabHumidityMap);
@@ -136,6 +141,7 @@ public class WorldGameplayRootBinder : MonoBehaviour
     #region Create
         private void CreateNoiseMap(NoiseMapViewModel noiseViewModel, NoiseMapBinder noiseMapBinder)
         {
+            Debug.Log("Binder NoiseMap created");
             Instantiate(noiseMapBinder).Bind(noiseViewModel);
         }
 
