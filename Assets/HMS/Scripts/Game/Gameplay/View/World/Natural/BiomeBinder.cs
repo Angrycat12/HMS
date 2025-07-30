@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using DelaunayVoronoi;
+using Noise;
 using R3;
 using Unity.Collections;
 using UnityEngine;
@@ -40,10 +40,10 @@ public class BiomeBinder : MonoBehaviour
         int[] triangles = GetMeshTriangles(polygon);
 
         HashSet<Vector3> vertices = new();
-        foreach (Edge edge in polygon.edges)
+        foreach (Edge edge in polygon.Edges)
         {
-            vertices.Add(edge.Point1.ToVector3());
-            vertices.Add(edge.Point2.ToVector3());
+            vertices.Add(edge.P1.ToVector3());
+            vertices.Add(edge.P2.ToVector3());
         }
 
         // Получаем MeshFilter, чтобы задать ему наш меш
@@ -77,24 +77,24 @@ public class BiomeBinder : MonoBehaviour
         return newVertices.ToArray();
     }
 
-    private static int[] GetMeshTriangles(Polygon polygon)
+    private static int[] GetMeshTriangles(VoronoiCell polygon)
     {
-        var triangles = polygon.Triangles;
-        var points = polygon.vertices.ToList();
+        var triangles = polygon.Triangulate();
+        var points = polygon.Vertex.ToList();
 
         // Создаем словарь для индексации вершин
         Dictionary<Vector2, int> vertexIndexMap = new Dictionary<Vector2, int>();
         for (int i = 0; i < points.Count; i++)
         {
-            vertexIndexMap[points[i]] = i;
+            vertexIndexMap[points[i].ToVector2()] = i;
         }
 
         List<int> answer = new();
         foreach (var triangle in triangles)
         {
-            answer.Add(vertexIndexMap[triangle.Vertices[0].ToVector2()]);
-            answer.Add(vertexIndexMap[triangle.Vertices[1].ToVector2()]);
-            answer.Add(vertexIndexMap[triangle.Vertices[2].ToVector2()]);
+            answer.Add(vertexIndexMap[triangle.Vertex[0].ToVector2()]);
+            answer.Add(vertexIndexMap[triangle.Vertex[1].ToVector2()]);
+            answer.Add(vertexIndexMap[triangle.Vertex[2].ToVector2()]);
         }
         return answer.ToArray();
     }

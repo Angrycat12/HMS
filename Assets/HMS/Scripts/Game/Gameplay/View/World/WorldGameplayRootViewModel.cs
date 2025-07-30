@@ -41,14 +41,22 @@ public class WorldGameplayRootViewModel : UIRootViewModel
         BiomeCount = worldService.BiomeCount;
     }
 
-    public async Task Start(CancellationToken cancellationToken = default)
+    public async Task<bool> Start(CancellationToken cancellationToken = default)
     {
+        Debug.Log("вызов");
+        bool a = false;
         if (!_worldService.IsWorldGenerated())
         {
             Debug.Log("start");
-            await _worldService.CreateMap(cancellationToken);
+            a = await _worldService.CreateMap(cancellationToken);
+            Debug.Log(a);
         }
-        
+        if (!a)
+        {
+            Debug.Log("es");
+            return false;
+        }
+
         HeightViewModel = _worldService.GetHeightViewModel();
         HumidityViewModel = _worldService.GetHumidityViewModel();
         TemperatureViewModel = _worldService.GetTemperatureViewModel();
@@ -61,6 +69,7 @@ public class WorldGameplayRootViewModel : UIRootViewModel
 
         // RegionViewModels = new(_worldService.GetRegionViewModels());
         // CountryViewModel = mew(_worldService.GetCountryViewModels());
-        
+
+        return true;
     }
 }

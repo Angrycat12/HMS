@@ -1,13 +1,14 @@
 using System.Collections.Generic;
-using DelaunayVoronoi;
+using Noise;
+
 
 public class BiomeData
 {
     public int Id;
-    public Polygon Polygon;
+    public VoronoiCell Polygon;
     public List<int[]> Points; // list cord in map
 
-    public BiomeData(int id, Polygon polygon, List<int[]> points)
+    public BiomeData(int id, VoronoiCell polygon, List<int[]> points)
     {
         Id = id;
         Polygon = polygon;

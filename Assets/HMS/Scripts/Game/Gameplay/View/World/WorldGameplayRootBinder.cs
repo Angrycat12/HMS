@@ -73,8 +73,13 @@ public class WorldGameplayRootBinder : MonoBehaviour
         _waterLevel = viewModel.WaterLevel;
         _biomeCount = viewModel.BiomeCount;
 
-        Task task = viewModel.Start(destroyCancellationToken);
+        Task<bool> task = viewModel.Start(destroyCancellationToken);
         yield return new WaitUntil(() => task.IsCompleted);
+        if (!task.Result)
+        {
+            Debug.LogError("World don't generated");
+            yield break;
+        }
 
         CreateNoiseMap(viewModel.HeightViewModel, _prefabHeightMap);
         CreateNoiseMap(viewModel.HumidityViewModel, _prefabHumidityMap);

@@ -50,12 +50,17 @@ public class WorldService : IDisposable
 
     public async Task<bool> CreateMap(CancellationToken cancellationToken = default)
     {
-        bool answer = false;
+        bool answer = true;
         answer = await CreateHeightMap(1, 1, 1, 1, 4, cancellationToken);
+        Debug.Log("1: " + answer);
         answer &= await CreateHumidityMap(1, 1, 1, 1, 4, cancellationToken);
+        Debug.Log("2: " + answer);
         answer &= await CreateTemperatureMap(cancellationToken);
-        answer &= await CreateVegetationMap(1, 1, 1, 1, 4, cancellationToken); 
+        Debug.Log("3: " + answer);
+        answer &= await CreateVegetationMap(1, 1, 1, 1, 4, cancellationToken);
+        Debug.Log("4: " + answer); 
         answer &= await CreateBiomes(cancellationToken);
+        Debug.Log("5: " + answer);
         return answer;
         // _cmd.Process(new CmdCreateRegion()) && _cmd.Process(new CmdCreateCountry());
     }
@@ -75,8 +80,9 @@ public class WorldService : IDisposable
 
         _disposables.Add(Amplitude.Merge(Frequency)
                                   .Merge(Period)
+                                  .Skip(3)
                                   .Subscribe(async e => await CreateHeightMap(1, Amplitude.Value, Frequency.Value, Period.Value, Octaves.Value, cancellationToken)));
-        _disposables.Add(Octaves.Subscribe(async e => await CreateHeightMap(1, Amplitude.Value, Frequency.Value, Period.Value, Octaves.Value, cancellationToken)));
+        _disposables.Add(Octaves.Skip(1).Subscribe(async e => await CreateHeightMap(1, Amplitude.Value, Frequency.Value, Period.Value, Octaves.Value, cancellationToken)));
 
         return new NoiseMapViewModel(world.HeightMap, Amplitude, Frequency, Period, Octaves);
     }
@@ -90,8 +96,9 @@ public class WorldService : IDisposable
 
         _disposables.Add(Amplitude.Merge(Frequency)
                                   .Merge(Period)
+                                  .Skip(3)
                                   .Subscribe(async e => await CreateHumidityMap(1, Amplitude.Value, Frequency.Value, Period.Value, Octaves.Value, cancellationToken)));
-        _disposables.Add(Octaves.Subscribe(async e => await CreateHumidityMap(1, Amplitude.Value, Frequency.Value, Period.Value, Octaves.Value, cancellationToken)));
+        _disposables.Add(Octaves.Skip(1).Subscribe(async e => await CreateHumidityMap(1, Amplitude.Value, Frequency.Value, Period.Value, Octaves.Value, cancellationToken)));
 
         return new NoiseMapViewModel(world.HumidityMap, Amplitude, Frequency, Period, Octaves);
     }
@@ -110,8 +117,9 @@ public class WorldService : IDisposable
 
         _disposables.Add(Amplitude.Merge(Frequency)
                                   .Merge(Period)
+                                  .Skip(3)
                                   .Subscribe(async e => await CreateVegetationMap(1, Amplitude.Value, Frequency.Value, Period.Value, Octaves.Value, cancellationToken)));
-        _disposables.Add(Octaves.Subscribe(async e => await CreateVegetationMap(1, Amplitude.Value, Frequency.Value, Period.Value, Octaves.Value, cancellationToken)));
+        _disposables.Add(Octaves.Skip(1).Subscribe(async e => await CreateVegetationMap(1, Amplitude.Value, Frequency.Value, Period.Value, Octaves.Value, cancellationToken)));
 
         return new NoiseMapViewModel(world.VegetationMap, Amplitude, Frequency, Period, Octaves);
     }
