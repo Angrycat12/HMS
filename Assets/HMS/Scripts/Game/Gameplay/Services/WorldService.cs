@@ -52,15 +52,10 @@ public class WorldService : IDisposable
     {
         bool answer = true;
         answer = await CreateHeightMap(1, 1, 1, 1, 4, cancellationToken);
-        Debug.Log("1: " + answer);
         answer &= await CreateHumidityMap(1, 1, 1, 1, 4, cancellationToken);
-        Debug.Log("2: " + answer);
         answer &= await CreateTemperatureMap(cancellationToken);
-        Debug.Log("3: " + answer);
-        answer &= await CreateVegetationMap(1, 1, 1, 1, 4, cancellationToken);
-        Debug.Log("4: " + answer); 
+        answer &= await CreateVegetationMap(1, 1, 1, 1, 4, cancellationToken); 
         answer &= await CreateBiomes(cancellationToken);
-        Debug.Log("5: " + answer);
         return answer;
         // _cmd.Process(new CmdCreateRegion()) && _cmd.Process(new CmdCreateCountry());
     }

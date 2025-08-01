@@ -18,6 +18,7 @@ public class CmdCreateBiomesHandler : ICommandHandlerAsync<CmdCreateBiomes>
     {
         var points = GetPoints(command.Width, command.Height, command.CountPoints);
         List<BiomeData> biomes = await Task.Run(() => NewMetod(command, points), token);
+        // List<BiomeData> biomes = NewMetod(command, points);
         World world = _gameState.Worlds.FirstOrDefault(w => w.Origin.id == command.WorldId);
         biomes.ForEach(b => world.BiomeAdd(b));
         return true;
@@ -36,9 +37,6 @@ public class CmdCreateBiomesHandler : ICommandHandlerAsync<CmdCreateBiomes>
     private List<BiomeData> NewMetod(CmdCreateBiomes command, List<Point> pointsB)
     {
         List<BiomeData> biomes = new();
-        // var VoronoiNose = new Voronoi(command.CountPoints, command.Width, command.Height);
-        // VoronoiNose.GenerateNose();
-        // VoronoiNose.LloydRelaxation(command.LloydRelaxations);
 
         var VoronoiNose = Voronoi.GenerateNoise(pointsB, command.Width, command.Height, command.LloydRelaxations);
 

@@ -43,17 +43,13 @@ public class WorldGameplayRootViewModel : UIRootViewModel
 
     public async Task<bool> Start(CancellationToken cancellationToken = default)
     {
-        Debug.Log("вызов");
         bool a = false;
         if (!_worldService.IsWorldGenerated())
         {
-            Debug.Log("start");
             a = await _worldService.CreateMap(cancellationToken);
-            Debug.Log(a);
         }
         if (!a)
         {
-            Debug.Log("es");
             return false;
         }
 

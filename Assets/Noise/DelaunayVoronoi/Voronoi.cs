@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using UnityEngine;
 
 namespace Noise
 {
@@ -177,10 +175,11 @@ namespace Noise
 
             List<Point> currentPoints = new(points);
 
-            for (int i = 0; i < numRelaxations; i++)
+            // Начинаем с единицы что-б кол-во релоксаций совпадало с кол-во генераций вороного
+            for (int i = 1; i < numRelaxations; i++)
             {
                 List<DelaunayTriangle> delaunayTriangles = Delaunay.GenerateNoise(currentPoints);
-                var voronoiCells = BuildVoronoiDiagram(delaunayTriangles, currentPoints, maxWidth, maxHeight, true); // True для обрезки
+                var voronoiCells = BuildVoronoiDiagram(delaunayTriangles, currentPoints, maxWidth, maxHeight, false); // замена true на false (а я то демал почему неправельно генерится диограмма, а это нейронка напортачила)
 
                 // Собираем новые центроиды для следующей итерации
                 currentPoints.Clear();
@@ -188,7 +187,7 @@ namespace Noise
                 {
                     // Используем Centroid из Polygon, который вычисляется при создании VoronoiCell
                     // Это центроид обрезанной ячейки.
-                    currentPoints.Add(cell.Centroid); 
+                    currentPoints.Add(cell.Centroid);
                 }
             }
 

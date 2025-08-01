@@ -40,6 +40,8 @@ namespace Noise
             return HashCode.Combine(x, y);
         }
 
+        public override string ToString() => $"({x} ,{y} )";
+        
         public static Point operator +(Point p1, Point p2) => new Point(p1.x + p2.x, p1.y + p2.y);
         public static Point operator -(Point p1, Point p2) => new Point(p1.x - p2.x, p1.y - p2.y);
         public static Point operator *(Point p, double scalar) => new Point(p.x * scalar, p.y * scalar);
