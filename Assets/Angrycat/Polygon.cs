@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Noise
+namespace Angrycat
 {
     public class Polygon
     {
@@ -22,7 +22,7 @@ namespace Noise
 
             Vertex = points;
             GetCentroid();
-            MercatorСhain();
+            BuildConvexHull();
             GetEdges();
         }
 
@@ -45,6 +45,8 @@ namespace Noise
             // MercatorСhain();
             GetEdges();
         }
+
+        public Polygon GetPolygon() => this;
 
         public bool CheckPointInsidePolygon(Point point)
         {
@@ -70,21 +72,88 @@ namespace Noise
 
         public HashSet<Triangle> Triangulate()
         {
-            HashSet<Triangle> Triangles = new();
+            var triangles = new HashSet<Triangle>();
+            var remainingVertices = new List<Point>(Vertex);
 
-            // Первая вершина фиксирована
-            var firstVertex = Vertex[0];
-
-            // Проходим по всем вершинам начиная со второй и третьей
-            for (int i = 1; i < Vertex.Count() - 1; i++)
+            if (remainingVertices.Count < 3) return triangles;
+            if (remainingVertices.Count == 3)
             {
-                // Создаём треугольник из первой вершины и двух последовательных вершин
-                var triangle = new Triangle(firstVertex, Vertex[i], Vertex[i + 1]);
-                Triangles.Add(triangle);
+                triangles.Add(new Triangle(remainingVertices[0], remainingVertices[1], remainingVertices[2]));
+                return triangles;
             }
 
-            return Triangles;
+            int currentIndex = 0;
+            while (remainingVertices.Count > 3)
+            {
+                int prevIndex = (currentIndex == 0) ? remainingVertices.Count - 1 : currentIndex - 1;
+                int nextIndex = (currentIndex + 1) % remainingVertices.Count;
+
+                Point p_prev = remainingVertices[prevIndex];
+                Point p_curr = remainingVertices[currentIndex];
+                Point p_next = remainingVertices[nextIndex];
+                
+                // Проверяем, является ли текущая вершина "ухом"
+                if (IsEar(p_prev, p_curr, p_next, remainingVertices))
+                {
+                    triangles.Add(new Triangle(p_prev, p_curr, p_next));
+                    remainingVertices.RemoveAt(currentIndex);
+                    // Сбрасываем индекс для начала нового поиска
+                    currentIndex = 0; 
+                }
+                else
+                {
+                    currentIndex++;
+                    if (currentIndex >= remainingVertices.Count)
+                    {
+                        // Если мы прошли весь полигон и не нашли ухо, это может означать,
+                        // что полигон слишком сложный или имеет самопересечения.
+                        // В данном случае просто выходим, чтобы избежать бесконечного цикла.
+                        break; 
+                    }
+                }
+            }
+
+            // Добавляем последний оставшийся треугольник
+            if (remainingVertices.Count == 3)
+            {
+                triangles.Add(new Triangle(remainingVertices[0], remainingVertices[1], remainingVertices[2]));
+            }
+
+            return triangles;
         }
+
+        private bool IsEar(Point p1, Point p2, Point p3, List<Point> polygonVertices)
+        {
+            // Ухо должно быть выпуклой вершиной (для CCW полигона кросс-продукт > 0)
+            if (CrossProduct(p1, p2, p3) < 0)
+                return false;
+
+            // Внутри треугольника-уха не должно быть других вершин полигона
+            Triangle potentialEar = new(p1, p2, p3);
+            foreach (var p in polygonVertices)
+            {
+                if (p.Equals(p1) || p.Equals(p2) || p.Equals(p3))
+                    continue;
+
+                // Используем проверку на нахождение точки внутри треугольника
+                if (IsPointInTriangle(p, p1, p2, p3))
+                    return false;
+            }
+            return true;
+        }
+
+        private bool IsPointInTriangle(Point pt, Point v1, Point v2, Point v3)
+        {
+            double d1 = CrossProduct(pt, v1, v2);
+            double d2 = CrossProduct(pt, v2, v3);
+            double d3 = CrossProduct(pt, v3, v1);
+            
+            bool has_neg = (d1 < 0) || (d2 < 0) || (d3 < 0);
+            bool has_pos = (d1 > 0) || (d2 > 0) || (d3 > 0);
+
+            return !(has_neg && has_pos);
+        }
+
         
         private static double CrossProduct(Point p, Point q, Point r)
         {
@@ -92,7 +161,7 @@ namespace Noise
             return (q.x - p.x) * (r.y - p.y) - (q.y - p.y) * (r.x - p.x);
         }
 
-        private void MercatorСhain()
+        private void BuildConvexHull()
         {
             List<Point> points = Vertex.ToList();
 

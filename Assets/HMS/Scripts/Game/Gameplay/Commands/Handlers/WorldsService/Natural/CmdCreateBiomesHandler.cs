@@ -2,7 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Noise;
+using Angrycat;
+using Angrycat.Noise;
 using UnityEngine;
 
 public class CmdCreateBiomesHandler : ICommandHandlerAsync<CmdCreateBiomes>
@@ -37,27 +38,30 @@ public class CmdCreateBiomesHandler : ICommandHandlerAsync<CmdCreateBiomes>
     private List<BiomeData> NewMetod(CmdCreateBiomes command, List<Point> pointsB)
     {
         List<BiomeData> biomes = new();
-
-        var VoronoiNose = Voronoi.GenerateNoise(pointsB, command.Width, command.Height, command.LloydRelaxations);
-
-        int width = command.Width;
-        int height = command.Height;
-
-        for (int i = 0; i < VoronoiNose.Count; i++)
+        try
         {
-            List<int[]> points = new();
-            for (int x = 0; x < width; x++)
+            var VoronoiNose = Voronoi.GenerateNoise(pointsB, command.Width, command.Height, command.LloydRelaxations);
+
+            int width = command.Width;
+            int height = command.Height;
+
+            for (int i = 0; i < VoronoiNose.Count; i++)
             {
-                for (int y = 0; y < height; y++)
+                List<int[]> points = new();
+                for (int x = 0; x < width; x++)
                 {
-                    if (VoronoiNose.ElementAt(i).CheckPointInsidePolygon(new Point(x, y)))
+                    for (int y = 0; y < height; y++)
                     {
-                        points.Add(new int[2] { x, y });
+                        if (VoronoiNose.ElementAt(i).CheckPointInsidePolygon(new Point(x, y)))
+                        {
+                            points.Add(new int[2] { x, y });
+                        }
                     }
                 }
+                biomes.Add(new BiomeData(i, VoronoiNose.ElementAt(i), points));
             }
-            biomes.Add(new BiomeData(i, VoronoiNose.ElementAt(i), points));
         }
+        catch { }
 
         return biomes;
     }

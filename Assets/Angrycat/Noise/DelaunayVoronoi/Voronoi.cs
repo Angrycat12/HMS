@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Noise
+namespace Angrycat.Noise
 {
     // Вспомогательный класс для обрезки многоугольников по прямоугольной области
     public static class Clipper

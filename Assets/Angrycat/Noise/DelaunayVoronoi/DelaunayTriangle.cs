@@ -1,4 +1,4 @@
-namespace Noise
+namespace Angrycat.Noise
 {
     public class DelaunayTriangle : Triangle
     {

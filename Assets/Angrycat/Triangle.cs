@@ -1,17 +1,18 @@
 using System;
 
-namespace Noise
+namespace Angrycat
 {
     public class Triangle : Polygon
     {
         public new Point[] Vertex { get; } = new Point[3];
         public Point Circumcenter { get; private set; }
         public double RadiusSquared;
+        public double Circumradius => Math.Sqrt(RadiusSquared);
         public new Edge[] Edges = new Edge[3];
 
         public Point P1 => Vertex[0];
-        public Point P2 => Vertex[0];
-        public Point P3 => Vertex[0];
+        public Point P2 => Vertex[1];
+        public Point P3 => Vertex[2];
 
         public Edge E12 => Edges[0];
         public Edge E23 => Edges[1];

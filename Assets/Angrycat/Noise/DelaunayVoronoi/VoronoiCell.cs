@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Noise
+namespace Angrycat.Noise
 {
     public class VoronoiCell : Polygon
     {

@@ -1,10 +1,11 @@
 using System.Collections.Generic;
-using Noise;
+using Angrycat.Noise;
 
 
 public class BiomeData
 {
     public int Id;
+    public BiomeType Type;
     public VoronoiCell Polygon;
     public List<int[]> Points; // list cord in map
 

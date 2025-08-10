@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Noise
+namespace Angrycat
 {
     public class Point
     {

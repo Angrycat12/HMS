@@ -1,4 +1,4 @@
-namespace Noise
+namespace Angrycat
 {
     public class Edge
     {

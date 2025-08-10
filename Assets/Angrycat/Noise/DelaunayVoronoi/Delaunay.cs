@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 
-namespace Noise
+namespace Angrycat.Noise
 {
     public static class Delaunay
     {
@@ -28,7 +27,7 @@ namespace Noise
             double width = maxX - minX;
             double height = maxY - minY;
             double maxDim = Math.Max(width, height);
-            
+
             // Надежный способ построения супер-треугольника
             // Используем большой буфер, чтобы гарантировать, что все точки находятся внутри
             double buffer = maxDim > 0 ? maxDim * 2 : 1000; // Если maxDim 0 (одна точка или все в одной), используем дефолтный буфер

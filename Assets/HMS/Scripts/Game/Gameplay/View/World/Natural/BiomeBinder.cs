@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
-using Noise;
+using Angrycat;
+using Angrycat.Noise;
 using R3;
 using Unity.Collections;
 using UnityEngine;
@@ -104,9 +105,9 @@ public class BiomeBinder : MonoBehaviour
         if (_viewModel is not null)
         {
             _disposables.Add(_viewModel.AvarageHeight.Subscribe(e => AvarageHeight = e));
-            // _disposables.Add(_viewModel.AvarageHumidity.Subscribe(e => AvarageHumidity = e));
-            // _disposables.Add(_viewModel.AvarageTemperature.Subscribe(e => AvarageTemperature = e));
-            // _disposables.Add(_viewModel.AvarageVegetation.Subscribe(e => AvarageVegetation = e));
+            _disposables.Add(_viewModel.AvarageHumidity.Subscribe(e => AvarageHumidity = e));
+            _disposables.Add(_viewModel.AvarageTemperature.Subscribe(e => AvarageTemperature = e));
+            _disposables.Add(_viewModel.AvarageVegetation.Subscribe(e => AvarageVegetation = e));
         }
     }
 
